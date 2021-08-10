@@ -40,8 +40,8 @@ class Input extends Component {
       conversationId: this.props.conversationId,
       sender: this.props.conversationId ? null : this.props.user,
     };
+    
     await this.props.postMessage(reqBody);
-    await this.props.updateChat();
     this.setState({
       text: "",
     });
@@ -78,9 +78,6 @@ const mapDispatchToProps = (dispatch) => {
     postMessage: (message) => {
       dispatch(postMessage(message));
     },
-    updateChat: () => {
-      dispatch(fetchConversations());
-    }
   };
 };
 
