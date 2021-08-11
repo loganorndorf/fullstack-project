@@ -1,5 +1,8 @@
+
 export const addMessageToStore = (state, payload) => {
   const { message, sender } = payload;
+  const newState = [...state];
+
   // if sender isn't null, that means the message needs to be put in a brand new convo
   if (sender !== null) {
     const newConvo = {
@@ -8,22 +11,26 @@ export const addMessageToStore = (state, payload) => {
       messages: [message],
     };
     newConvo.latestMessageText = message.text;
-    return [newConvo, ...state];
+
+    return [newConvo, ...newState];
   }
 
-  return state.map((convo) => {
+  return newState.map((convo) => {
     if (convo.id === message.conversationId) {
-      convo.messages.push(message);
-      convo.latestMessageText = message.text;
-      return convo;
+      const convoCopy = {...convo};
+      convoCopy.messages.push(message);
+      convoCopy.latestMessageText = message.text;
+      return convoCopy;
     } else {
       return convo;
     }
   });
+
 };
 
 export const addOnlineUserToStore = (state, id) => {
-  return state.map((convo) => {
+  const newState = [...state];
+  return newState.map((convo) => {
     if (convo.otherUser.id === id) {
       const convoCopy = { ...convo };
       convoCopy.otherUser.online = true;
@@ -35,7 +42,8 @@ export const addOnlineUserToStore = (state, id) => {
 };
 
 export const removeOfflineUserFromStore = (state, id) => {
-  return state.map((convo) => {
+  const newState = [...state];
+  return newState.map((convo) => {
     if (convo.otherUser.id === id) {
       const convoCopy = { ...convo };
       convoCopy.otherUser.online = false;
@@ -67,12 +75,15 @@ export const addSearchedUsersToStore = (state, users) => {
 };
 
 export const addNewConvoToStore = (state, recipientId, message) => {
-  return state.map((convo) => {
+  const newState = [...state];
+  return newState.map((convo) => {
     if (convo.otherUser.id === recipientId) {
-      convo.id = message.conversationId;
-      convo.messages.push(message);
-      convo.latestMessageText = message.text;
-      return convo;
+      const convoCopy = {...convo};
+
+      convoCopy.id = message.conversationId;
+      convoCopy.messages.push(message);
+      convoCopy.latestMessageText = message.text;
+      return convoCopy;
     } else {
       return convo;
     }
