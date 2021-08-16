@@ -20,20 +20,17 @@ const styles = {
 };
 
 class Chat extends Component {
-  handleClick = async (props) => {
-    await this.props.setActiveChat(props);
+  handleClick = async () => {
+    const { setActiveChat, user, conversation } = this.props;
+    await setActiveChat({user, conversation});
   };
 
   render() {
-    const { classes } = this.props;
-    const user = this.props.user;
-    const otherUser = this.props.conversation.otherUser;
+    const { classes, conversation } = this.props;
+    const otherUser = conversation.otherUser;
     return (
       <Box
-        onClick={() => this.handleClick({
-          conversation: this.props.conversation, 
-          user
-        })}
+        onClick={this.handleClick}
         className={classes.root}
       >
         <BadgeAvatar
@@ -42,8 +39,8 @@ class Chat extends Component {
           online={otherUser.online}
           sidebar={true}
         />
-        <ChatContent conversation={this.props.conversation} />
-        <Notification conversation={this.props.conversation} />
+        <ChatContent conversation={conversation} />
+        <Notification conversation={conversation} />
       </Box>
     );
   }

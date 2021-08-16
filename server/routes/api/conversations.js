@@ -72,12 +72,12 @@ router.get("/", async (req, res, next) => {
       convoJSON.latestMessageText = convoJSON.messages[0].text;
       convoJSON.messages.reverse();
 
-      convoJSON.notifCount = 0;
+      convoJSON.unreadMessagesCount = 0;
       for(let i = convoJSON.messages.length - 1; i >= 0; i--) {
         const currMsg = convoJSON.messages[i];
 
-        if(!currMsg.recipientHasRead) {
-          convoJSON.notifCount++;
+        if(!currMsg.isRead) {
+          convoJSON.unreadMessagesCount++;
         } else {
           convoJSON.otherUser.lastRead = currMsg.id;
 

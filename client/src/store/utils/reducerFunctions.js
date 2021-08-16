@@ -14,11 +14,11 @@ export const addMessageToStore = (state, payload) => {
     
     newConvo.otherUser.activeChat = recipient;
     
-    if(!message.recipientHasRead) {
-      newConvo.notifCount = 1
+    if(!message.isRead) {
+      newConvo.unreadMessagesCount = 1
     }
     else {
-      newConvo.notifCount = 0
+      newConvo.unreadMessagesCount = 0
       if(message.senderId !== newConvo.otherUser.id) {
         newConvo.otherUser.lastRead = message.id;
       }
@@ -33,8 +33,8 @@ export const addMessageToStore = (state, payload) => {
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
 
-      if(!message.recipientHasRead) {
-        convoCopy.notifCount++;
+      if(!message.isRead) {
+        convoCopy.unreadMessagesCount++;
       } else if(message.senderId !== convoCopy.otherUser.id) {
         convoCopy.otherUser.lastRead = message.id;
       }
@@ -123,7 +123,7 @@ export const addNewConvoToStore = (state, recipientId, message) => {
       convoCopy.id = message.conversationId;
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
-      convoCopy.notifCount = convoCopy.notifCount ? convoCopy.notifCount : 0;
+      convoCopy.unreadMessagesCount = convoCopy?.unreadMessagesCount ?? 0;
       return convoCopy;
     } else {
       return convo;
@@ -138,12 +138,12 @@ export const updateStoredMessagesReadStatus = (state, payload) => {
   return newState.map((convo) => {
     if(convo.id === conversationId){
       const convoCopy = {...convo};
-      convoCopy.notifCount = 0;
+      convoCopy.unreadMessagesCount = 0;
 
       convoCopy.messages = convoCopy.messages.map((msg) => {
         if(msg.id > lastReadMsg) {
           const msgCopy = {...msg};
-          msgCopy.recipientHasRead = true;
+          msgCopy.isRead = true;
           if(msg.senderId !== convoCopy.otherUser.id) {
             convoCopy.otherUser.lastRead = msg.id;
           }

@@ -147,19 +147,18 @@ const updateOnlineUser = (id, otherUser) => {
 export const updateReadStatus = (body) => async(dispatch) => {
   try {
     const { user } = body;
-    const { otherUser, messages, notifCount, id } = body.conversation;
+    const { otherUser, messages, unreadMessagesCount, id } = body.conversation;
     const lastSent = messages[messages.length-1];
     
-    // update unread messages
-    if(lastSent && lastSent.senderId === otherUser.id) {
-      const lastReadId = lastSent.id - notifCount;
+    if(lastSent?.senderId === otherUser.id) {
+      
+      const lastReadId = lastSent.id - unreadMessagesCount;
       await updateMessageReadStatus(otherUser.id, lastReadId);
 
-      // update messages in store(s)
       dispatch(updateReadMessages(id, lastReadId));
       sendMsgUpdate(otherUser.id, id, lastReadId);
     }
-    // update userActiveChat prop
+
     userActiveChatUpdate(user.id, otherUser.id);
     updateOnlineUser(user.id, otherUser);
   

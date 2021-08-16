@@ -10,16 +10,14 @@ const useStyles = makeStyles((theme) => ({
 const NotificationBadge = (props) => {
     const classes = useStyles();
 
-    const { otherUser, messages, notifCount } = props.conversation;
+    const { otherUser, messages, unreadMessagesCount } = props.conversation;
     const lastSent = messages[messages.length-1]
 
-    if(lastSent && lastSent.senderId === otherUser.id) {
-        return(
-            <Badge className={classes.badge} badgeContent={notifCount} color="primary"></Badge>
-        )
+    if(lastSent?.senderId !== otherUser.id) {
+        return null;
     }
     
-    return null;
+    return <Badge className={classes.badge} badgeContent={unreadMessagesCount} color="primary"></Badge>;
 }
 
 export default NotificationBadge;

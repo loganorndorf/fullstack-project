@@ -10,7 +10,7 @@ const Message = db.define("message", {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
-  recipientHasRead: {
+  isRead: {
     type: Sequelize.BOOLEAN,
     allowNull: false
   }
@@ -19,7 +19,7 @@ const Message = db.define("message", {
 Message.updateUnreads = async function (senderId, lastReadId) {
 
   const messages = await Message.update({
-    recipientHasRead: true,
+    isRead: true,
   }, {
     where: {
       id: {
