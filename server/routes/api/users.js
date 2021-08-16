@@ -42,10 +42,10 @@ router.put("/:userId", async(req, res, next) => {
       return res.sendStatus(401);
     }
     const { userId } = req.params;
-    const { otherUserUsername = null } = req.body;
+    const { otherUserId = null } = req.body;
 
     const update = await User.update({
-      activeChat: otherUserUsername
+      activeChat: otherUserId
     }, {
       where: {
         id: userId

@@ -18,7 +18,7 @@ socket.on("connect", () => {
   });
 
   socket.on("update-online-user", (data) => {
-    store.dispatch(updateOnlineUserData(data.username, data.id));
+    store.dispatch(updateOnlineUserData(data.otherUserId, data.id));
   })
 
   socket.on("remove-offline-user", (id) => {
@@ -26,7 +26,7 @@ socket.on("connect", () => {
   });
 
   socket.on("new-message", (data) => {
-    store.dispatch(setNewMessage(data.message, data.sender));
+    store.dispatch(setNewMessage(data.message, data.recipientId, data.sender));
   });
 
   socket.on("update-messages", (data) => {

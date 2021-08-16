@@ -29,10 +29,10 @@ export const gotConversations = (conversations) => {
   };
 };
 
-export const setNewMessage = (message, sender) => {
+export const setNewMessage = (message,  recipient, sender) => {
   return {
     type: SET_MESSAGE,
-    payload: { message, sender: sender || null },
+    payload: { message, recipient, sender: sender || null },
   };
 };
 
@@ -43,10 +43,10 @@ export const addOnlineUser = (id) => {
   };
 };
 
-export const updateOnlineUserData = (recipUsername, id) => {
+export const updateOnlineUserData = (recipId, id) => {
   return {
     type: UPDATE_ONLINE_USER,
-    payload: { recipUsername, id },
+    payload: { recipId, id },
   }
 }
 

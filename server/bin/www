@@ -43,12 +43,13 @@ io.on("connection", (socket) => {
   socket.on("update-online-user", (data) => {
     socket.broadcast.emit("update-online-user", {
       id: data.id,
-      username: data.username
+      otherUserId: data.otherUserId
     });
   });
 
   socket.on("new-message", (data) => {
     socket.broadcast.emit("new-message", {
+      recipientId: data.recipientId,
       message: data.message,
       sender: data.sender,
     });

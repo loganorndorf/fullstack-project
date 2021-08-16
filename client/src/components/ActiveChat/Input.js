@@ -42,7 +42,7 @@ class Input extends Component {
       recipientHasRead: false
     };
 
-    if(this.props.otherUser.activeChat === this.props.user.username) {
+    if(this.props.otherUser.activeChat === this.props.user.id) {
       reqBody.recipientHasRead = true;
     }
 

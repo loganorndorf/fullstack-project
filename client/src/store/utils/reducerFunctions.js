@@ -1,6 +1,6 @@
 
 export const addMessageToStore = (state, payload) => {
-  const { message, sender } = payload;
+  const { message, sender, recipient } = payload;
   const newState = [...state];
 
   // if sender isn't null, that means the message needs to be put in a brand new convo
@@ -11,6 +11,8 @@ export const addMessageToStore = (state, payload) => {
       messages: [message],
       latestMessageText: message.text,
     };
+    
+    newConvo.otherUser.activeChat = recipient;
     
     if(!message.recipientHasRead) {
       newConvo.notifCount = 1
@@ -42,7 +44,6 @@ export const addMessageToStore = (state, payload) => {
       return convo;
     }
   });
-
 };
 
 export const addOnlineUserToStore = (state, id) => {
@@ -58,17 +59,18 @@ export const addOnlineUserToStore = (state, id) => {
   });
 };
 
+
 export const updateOnlineUserActiveChat = (state, payload) => {
-  const {id, recipUsername} = payload;
+  const {id, recipId} = payload;
 
   const newState = [...state];
   return newState.map((convo) => {
     if(convo.otherUser.id === id) {
       const convoCopy = {...convo};
-      convoCopy.otherUser.activeChat = recipUsername;
+      convoCopy.otherUser.activeChat = recipId;
       return convoCopy;
     } else {
-      if(convo.otherUser.activeChat === recipUsername) {
+      if(convo.otherUser.activeChat === recipId) {
         const convoCopy = {...convo};
         convoCopy.otherUser.activeChat = null;
         return convoCopy;

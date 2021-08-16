@@ -103,7 +103,7 @@ export const postMessage = (body) => async (dispatch) => {
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));
     } else {
-      dispatch(setNewMessage(data.message));
+      dispatch(setNewMessage(data.message, body.recipientId));
     }
 
     sendMessage(data, body);
@@ -133,15 +133,14 @@ const sendMsgUpdate = (recipientId, id, lastRead) => {
   });
 }
 
-const userActiveChatUpdate = async(userId, otherUserUsername) => {
-  const userUpdate = await axios.put(`/api/users/${userId}`, {otherUserUsername});
+const userActiveChatUpdate = async(userId, otherUserId) => {
+  const userUpdate = await axios.put(`/api/users/${userId}`, {otherUserId});
   return userUpdate;
 }
 const updateOnlineUser = (id, otherUser) => {
   socket.emit("update-online-user", {
-    recipientId: otherUser.id,
     id,
-    username: otherUser.username
+    otherUserId: otherUser.id
   });
 }
 
@@ -161,7 +160,7 @@ export const updateReadStatus = (body) => async(dispatch) => {
       sendMsgUpdate(otherUser.id, id, lastReadId);
     }
     // update userActiveChat prop
-    userActiveChatUpdate(user.id, otherUser.username) 
+    userActiveChatUpdate(user.id, otherUser.id);
     updateOnlineUser(user.id, otherUser);
   
     dispatch(setActiveChat(otherUser.username));
