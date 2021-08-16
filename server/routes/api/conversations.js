@@ -31,7 +31,7 @@ router.get("/", async (req, res, next) => {
               [Op.not]: userId,
             },
           },
-          attributes: ["id", "username", "photoUrl"],
+          attributes: ["id", "username", "photoUrl", "activeChat"],
           required: false,
         },
         {
@@ -42,7 +42,7 @@ router.get("/", async (req, res, next) => {
               [Op.not]: userId,
             },
           },
-          attributes: ["id", "username", "photoUrl"],
+          attributes: ["id", "username", "photoUrl", "activeChat"],
           required: false,
         },
       ],
@@ -70,8 +70,23 @@ router.get("/", async (req, res, next) => {
 
       // set properties for notification count and latest message preview
       convoJSON.latestMessageText = convoJSON.messages[0].text;
-
       convoJSON.messages.reverse();
+
+      convoJSON.notifCount = 0;
+      for(let i = convoJSON.messages.length - 1; i >= 0; i--) {
+        const currMsg = convoJSON.messages[i];
+
+        if(!currMsg.recipientHasRead) {
+          convoJSON.notifCount++;
+        } else {
+          convoJSON.otherUser.lastRead = currMsg.id;
+
+          if(currMsg.senderId !== convoJSON.otherUser.id){
+            break;
+          } 
+        }
+      }
+
       conversations[i] = convoJSON;
     }
 

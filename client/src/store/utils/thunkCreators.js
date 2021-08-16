@@ -5,8 +5,10 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  updateReadMessages
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
+import { setActiveChat } from "../activeConversation";
 
 axios.interceptors.request.use(async function (config) {
   const token = await localStorage.getItem("messenger-token");
@@ -58,6 +60,7 @@ export const login = (credentials) => async (dispatch) => {
 
 export const logout = (id) => async (dispatch) => {
   try {
+    await axios.put(`/api/users/${id}`);
     await axios.delete("/auth/logout");
     await localStorage.removeItem("messenger-token");
     dispatch(gotUser({}));
@@ -117,3 +120,52 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
     console.error(error);
   }
 };
+
+const updateMessageReadStatus = async(senderId, lastReadId) => {
+  const msgStatusUpdate = await axios.put("/api/messages", {senderId, lastReadId});
+  return msgStatusUpdate;
+}
+const sendMsgUpdate = (recipientId, id, lastRead) => {
+  socket.emit("update-messages", {
+    recipientId,
+    id,
+    lastRead
+  });
+}
+
+const userActiveChatUpdate = async(userId, otherUserUsername) => {
+  const userUpdate = await axios.put(`/api/users/${userId}`, {otherUserUsername});
+  return userUpdate;
+}
+const updateOnlineUser = (id, otherUser) => {
+  socket.emit("update-online-user", {
+    recipientId: otherUser.id,
+    id,
+    username: otherUser.username
+  });
+}
+
+export const updateReadStatus = (body) => async(dispatch) => {
+  try {
+    const { user } = body;
+    const { otherUser, messages, notifCount, id } = body.conversation;
+    const lastSent = messages[messages.length-1];
+    
+    // update unread messages
+    if(lastSent && lastSent.senderId === otherUser.id) {
+      const lastReadId = lastSent.id - notifCount;
+      await updateMessageReadStatus(otherUser.id, lastReadId);
+
+      // update messages in store(s)
+      dispatch(updateReadMessages(id, lastReadId));
+      sendMsgUpdate(otherUser.id, id, lastReadId);
+    }
+    // update userActiveChat prop
+    userActiveChatUpdate(user.id, otherUser.username) 
+    updateOnlineUser(user.id, otherUser);
+  
+    dispatch(setActiveChat(otherUser.username));
+  } catch (error) {
+    console.error(error);
+  }
+}

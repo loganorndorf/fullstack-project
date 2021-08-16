@@ -50,6 +50,7 @@ const ActiveChat = () => {
               messages={conversation.messages}
               otherUser={conversation.otherUser}
               userId={user.id}
+              notifCount={conversation.notifCount}
             />
             <Input
               otherUser={conversation.otherUser}

@@ -10,6 +10,7 @@ async function seed() {
   const thomas = await User.create({
     username: "thomas",
     email: "thomas@email.com",
+    activeChat: null,
     password: "123456",
     photoUrl:
       "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914467/messenger/thomas_kwzerk.png",
@@ -18,6 +19,7 @@ async function seed() {
   const santiago = await User.create({
     username: "santiago",
     email: "santiago@email.com",
+    activeChat: null,
     password: "123456",
     photoUrl:
       "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914466/messenger/775db5e79c5294846949f1f55059b53317f51e30_s3back.png",
@@ -32,21 +34,25 @@ async function seed() {
     conversationId: santaigoConvo.id,
     senderId: santiago.id,
     text: "Where are you from?",
+    recipientHasRead: true
   });
   await Message.create({
     conversationId: santaigoConvo.id,
     senderId: thomas.id,
     text: "I'm from New York",
+    recipientHasRead: true
   });
   await Message.create({
     conversationId: santaigoConvo.id,
     senderId: santiago.id,
     text: "Share photo of your city, please",
+    recipientHasRead: false
   });
 
   const chiumbo = await User.create({
     username: "chiumbo",
     email: "chiumbo@email.com",
+    activeChat: null,
     password: "123456",
     photoUrl:
       "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914468/messenger/8bc2e13b8ab74765fd57f0880f318eed1c3fb001_fownwt.png",
@@ -59,11 +65,13 @@ async function seed() {
     conversationId: chiumboConvo.id,
     senderId: chiumbo.id,
     text: "Sure! What time?",
+    recipientHasRead: false
   });
 
   const hualing = await User.create({
     username: "hualing",
     email: "hualing@email.com",
+    activeChat: null,
     password: "123456",
     photoUrl:
       "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914466/messenger/6c4faa7d65bc24221c3d369a8889928158daede4_vk5tyg.png",
@@ -78,6 +86,7 @@ async function seed() {
       conversationId: hualingConvo.id,
       senderId: hualing.id,
       text: "a test message",
+      recipientHasRead: false
     });
   }
 
@@ -85,6 +94,7 @@ async function seed() {
     conversationId: hualingConvo.id,
     senderId: hualing.id,
     text: "😂 😂 😂",
+    recipientHasRead: false
   });
 
   const otherUsers = await Promise.all([
@@ -92,14 +102,15 @@ async function seed() {
     User.create({
       username: "ashanti",
       email: "ashanti@email.com",
+      activeChat: null,
       password: "123456",
       photoUrl:
         "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914466/messenger/68f55f7799df6c8078a874cfe0a61a5e6e9e1687_e3kxp2.png",
     }),
     User.create({
       username: "julia",
-
       email: "julia@email.com",
+      activeChat: null,
       password: "123456",
       photoUrl:
         "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914468/messenger/d9fc84a0d1d545d77e78aaad39c20c11d3355074_ed5gvz.png",
@@ -107,6 +118,7 @@ async function seed() {
     User.create({
       username: "cheng",
       email: "cheng@email.com",
+      activeChat: null,
       password: "123456",
       photoUrl:
         "https://res.cloudinary.com/dmlvthmqr/image/upload/v1607914466/messenger/9e2972c07afac45a8b03f5be3d0a796abe2e566e_ttq23y.png",
