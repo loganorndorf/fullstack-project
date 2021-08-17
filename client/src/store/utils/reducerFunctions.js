@@ -1,6 +1,6 @@
 
 export const addMessageToStore = (state, payload) => {
-  const { message, sender } = payload;
+  const { message, sender, recipient } = payload;
   const newState = [...state];
 
   // if sender isn't null, that means the message needs to be put in a brand new convo
@@ -9,8 +9,20 @@ export const addMessageToStore = (state, payload) => {
       id: message.conversationId,
       otherUser: sender,
       messages: [message],
+      latestMessageText: message.text,
     };
-    newConvo.latestMessageText = message.text;
+    
+    newConvo.otherUser.activeChat = recipient;
+    
+    if(!message.isRead) {
+      newConvo.unreadMessagesCount = 1
+    }
+    else {
+      newConvo.unreadMessagesCount = 0
+      if(message.senderId !== newConvo.otherUser.id) {
+        newConvo.otherUser.lastRead = message.id;
+      }
+    }
 
     return [newConvo, ...newState];
   }
@@ -20,12 +32,18 @@ export const addMessageToStore = (state, payload) => {
       const convoCopy = {...convo};
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+
+      if(!message.isRead) {
+        convoCopy.unreadMessagesCount++;
+      } else if(message.senderId !== convoCopy.otherUser.id) {
+        convoCopy.otherUser.lastRead = message.id;
+      }
+
       return convoCopy;
     } else {
       return convo;
     }
   });
-
 };
 
 export const addOnlineUserToStore = (state, id) => {
@@ -33,9 +51,30 @@ export const addOnlineUserToStore = (state, id) => {
   return newState.map((convo) => {
     if (convo.otherUser.id === id) {
       const convoCopy = { ...convo };
-      convoCopy.otherUser.online = true;
+      convoCopy.otherUser.online = true; 
       return convoCopy;
     } else {
+      return convo;
+    }
+  });
+};
+
+
+export const updateOnlineUserActiveChat = (state, payload) => {
+  const {id, recipId} = payload;
+
+  const newState = [...state];
+  return newState.map((convo) => {
+    if(convo.otherUser.id === id) {
+      const convoCopy = {...convo};
+      convoCopy.otherUser.activeChat = recipId;
+      return convoCopy;
+    } else {
+      if(convo.otherUser.activeChat === recipId) {
+        const convoCopy = {...convo};
+        convoCopy.otherUser.activeChat = null;
+        return convoCopy;
+      }
       return convo;
     }
   });
@@ -47,6 +86,7 @@ export const removeOfflineUserFromStore = (state, id) => {
     if (convo.otherUser.id === id) {
       const convoCopy = { ...convo };
       convoCopy.otherUser.online = false;
+      convoCopy.otherUser.activeChat = null;
       return convoCopy;
     } else {
       return convo;
@@ -83,9 +123,39 @@ export const addNewConvoToStore = (state, recipientId, message) => {
       convoCopy.id = message.conversationId;
       convoCopy.messages.push(message);
       convoCopy.latestMessageText = message.text;
+      convoCopy.unreadMessagesCount = convoCopy?.unreadMessagesCount ?? 0;
       return convoCopy;
     } else {
       return convo;
     }
   });
 };
+
+export const updateStoredMessagesReadStatus = (state, payload) => {
+  const newState = [...state];
+  const { conversationId, lastReadMsg } = payload;
+
+  return newState.map((convo) => {
+    if(convo.id === conversationId){
+      const convoCopy = {...convo};
+      convoCopy.unreadMessagesCount = 0;
+
+      convoCopy.messages = convoCopy.messages.map((msg) => {
+        if(msg.id > lastReadMsg) {
+          const msgCopy = {...msg};
+          msgCopy.isRead = true;
+          if(msg.senderId !== convoCopy.otherUser.id) {
+            convoCopy.otherUser.lastRead = msg.id;
+          }
+          return msgCopy;
+        } else {
+          return msg;
+        }
+      })
+
+      return convoCopy;
+    } else {
+      return convo;
+    }
+  })
+}

@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { Box } from "@material-ui/core";
-import { BadgeAvatar, ChatContent } from "../Sidebar";
+import { BadgeAvatar, ChatContent, Notification } from "../Sidebar";
 import { withStyles } from "@material-ui/core/styles";
-import { setActiveChat } from "../../store/activeConversation";
 import { connect } from "react-redux";
+import { updateReadStatus } from "../../store/utils/thunkCreators";
 
 const styles = {
   root: {
@@ -20,16 +20,17 @@ const styles = {
 };
 
 class Chat extends Component {
-  handleClick = async (conversation) => {
-    await this.props.setActiveChat(conversation.otherUser.username);
+  handleClick = async () => {
+    const { setActiveChat, user, conversation } = this.props;
+    await setActiveChat({user, conversation});
   };
 
   render() {
-    const { classes } = this.props;
-    const otherUser = this.props.conversation.otherUser;
+    const { classes, conversation } = this.props;
+    const otherUser = conversation.otherUser;
     return (
       <Box
-        onClick={() => this.handleClick(this.props.conversation)}
+        onClick={this.handleClick}
         className={classes.root}
       >
         <BadgeAvatar
@@ -38,7 +39,8 @@ class Chat extends Component {
           online={otherUser.online}
           sidebar={true}
         />
-        <ChatContent conversation={this.props.conversation} />
+        <ChatContent conversation={conversation} />
+        <Notification conversation={conversation} />
       </Box>
     );
   }
@@ -46,8 +48,8 @@ class Chat extends Component {
 
 const mapDispatchToProps = (dispatch) => {
   return {
-    setActiveChat: (id) => {
-      dispatch(setActiveChat(id));
+    setActiveChat: (data) => {
+      dispatch(updateReadStatus(data));
     },
   };
 };

@@ -5,8 +5,10 @@ import {
   addConversation,
   setNewMessage,
   setSearchedUsers,
+  updateReadMessages
 } from "../conversations";
 import { gotUser, setFetchingStatus } from "../user";
+import { setActiveChat } from "../activeConversation";
 
 axios.interceptors.request.use(async function (config) {
   const token = await localStorage.getItem("messenger-token");
@@ -100,7 +102,7 @@ export const postMessage = (body) => async (dispatch) => {
     if (!body.conversationId) {
       dispatch(addConversation(body.recipientId, data.message));
     } else {
-      dispatch(setNewMessage(data.message));
+      dispatch(setNewMessage(data.message, body.recipientId));
     }
 
     sendMessage(data, body);
@@ -117,3 +119,45 @@ export const searchUsers = (searchTerm) => async (dispatch) => {
     console.error(error);
   }
 };
+
+const updateMessageReadStatus = async(senderId, lastReadId) => {
+  const msgStatusUpdate = await axios.put("/api/messages", {senderId, lastReadId});
+  return msgStatusUpdate;
+}
+const sendMsgUpdate = (recipientId, id, lastRead) => {
+  socket.emit("update-messages", {
+    recipientId,
+    id,
+    lastRead
+  });
+}
+
+const updateOnlineUser = (id, otherUser) => {
+  socket.emit("update-online-user", {
+    id,
+    otherUserId: otherUser.id
+  });
+}
+
+export const updateReadStatus = (body) => async(dispatch) => {
+  try {
+    const { user } = body;
+    const { otherUser, messages, unreadMessagesCount, id } = body.conversation;
+    const lastSent = messages[messages.length-1];
+    
+    if(lastSent?.senderId === otherUser.id) {
+      
+      const lastReadId = lastSent.id - unreadMessagesCount;
+      await updateMessageReadStatus(otherUser.id, lastReadId);
+
+      dispatch(updateReadMessages(id, lastReadId));
+      sendMsgUpdate(otherUser.id, id, lastReadId);
+    }
+    
+    updateOnlineUser(user.id, otherUser);
+  
+    dispatch(setActiveChat(otherUser.username));
+  } catch (error) {
+    console.error(error);
+  }
+}
