@@ -36,26 +36,4 @@ router.get("/:username", async (req, res, next) => {
   }
 });
 
-router.put("/:userId", async(req, res, next) => {
-  try {
-    if(!req.user) {
-      return res.sendStatus(401);
-    }
-    const { userId } = req.params;
-    const { otherUserId = null } = req.body;
-
-    const update = await User.update({
-      activeChat: otherUserId
-    }, {
-      where: {
-        id: userId
-      }
-    });
-
-    res.json(update);
-  } catch (error) {
-    next(error);
-  }
-})
-
 module.exports = router;

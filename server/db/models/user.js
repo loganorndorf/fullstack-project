@@ -16,10 +16,6 @@ const User = db.define("user", {
       isEmail: true
     }
   },
-  activeChat: {
-    type: Sequelize.STRING,
-    allowNull: true
-  },
   photoUrl: {
     type: Sequelize.STRING
   },

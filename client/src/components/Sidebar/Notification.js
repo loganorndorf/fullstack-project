@@ -13,11 +13,9 @@ const NotificationBadge = (props) => {
     const { otherUser, messages, unreadMessagesCount } = props.conversation;
     const lastSent = messages[messages.length-1]
 
-    if(lastSent?.senderId !== otherUser.id) {
-        return null;
-    }
-    
-    return <Badge className={classes.badge} badgeContent={unreadMessagesCount} color="primary"></Badge>;
+    return lastSent?.senderId === otherUser.id && 
+    <Badge className={classes.badge} badgeContent={unreadMessagesCount} color="primary"/>;
+
 }
 
 export default NotificationBadge;

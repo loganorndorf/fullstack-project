@@ -32,13 +32,10 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-const ReadReceipt = ({ msgId, otherUser, className }) => {
-  if(otherUser.lastRead !== msgId) {
-    return null;
-  }
+const ReadReceipt = ({ msgId, otherUser, className }) => 
+  otherUser.lastRead === msgId &&
+  <Avatar className={className} alt={otherUser.username} src={otherUser.photoUrl} />;
 
-  return <Avatar className={className} alt={otherUser.username} src={otherUser.photoUrl}></Avatar>;
-}
 
 const SenderBubble = (props) => {
   const classes = useStyles();

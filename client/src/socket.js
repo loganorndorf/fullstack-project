@@ -14,7 +14,14 @@ socket.on("connect", () => {
   console.log("connected to server");
 
   socket.on("add-online-user", (id) => {
+    const { user } = store.getState();
+
     store.dispatch(addOnlineUser(id));
+    socket.emit("update-online-user", {
+      recipientId: id,
+      otherUserId: id,
+      id: user.id
+    })
   });
 
   socket.on("update-online-user", (data) => {

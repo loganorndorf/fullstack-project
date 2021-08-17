@@ -60,7 +60,6 @@ export const login = (credentials) => async (dispatch) => {
 
 export const logout = (id) => async (dispatch) => {
   try {
-    await axios.put(`/api/users/${id}`);
     await axios.delete("/auth/logout");
     await localStorage.removeItem("messenger-token");
     dispatch(gotUser({}));
@@ -133,10 +132,6 @@ const sendMsgUpdate = (recipientId, id, lastRead) => {
   });
 }
 
-const userActiveChatUpdate = async(userId, otherUserId) => {
-  const userUpdate = await axios.put(`/api/users/${userId}`, {otherUserId});
-  return userUpdate;
-}
 const updateOnlineUser = (id, otherUser) => {
   socket.emit("update-online-user", {
     id,
@@ -158,8 +153,7 @@ export const updateReadStatus = (body) => async(dispatch) => {
       dispatch(updateReadMessages(id, lastReadId));
       sendMsgUpdate(otherUser.id, id, lastReadId);
     }
-
-    userActiveChatUpdate(user.id, otherUser.id);
+    
     updateOnlineUser(user.id, otherUser);
   
     dispatch(setActiveChat(otherUser.username));

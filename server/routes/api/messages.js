@@ -46,6 +46,9 @@ router.post("/", async (req, res, next) => {
 
 router.put("/", async(req, res, next) => {
   try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
     const { senderId, lastReadId } = req.body;
     const update = await Message.updateUnreads(senderId, lastReadId);
     res.json({ update });
