@@ -87,7 +87,7 @@ io.use((socket, next) => {
   });
 
   socket.on("new-message", (data) => {
-    if(onlineUsers.includes(data.recipientId) && typeof data.message === 'string'){
+    if(onlineUsers.includes(data.recipientId)){
       socket.broadcast.to(data.recipientId).emit("new-message", {
         recipientId: data.recipientId,
         message: data.message,
