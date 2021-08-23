@@ -8,10 +8,24 @@ import {
   updateOnlineUserData,
 } from "./store/conversations";
 
-const socket = io(window.location.origin);
+const socket = io(window.location.origin, {
+  auth: async(cb) => {
+    const token = await localStorage.getItem("messenger-token");
+    cb({
+      token
+    });
+  },
+  autoConnect: false,
+  reconnection: false,
+  rejectUnauthorized: true
+});
+
+socket.on("connect_error", error => {
+  console.log(error.message);
+})
 
 socket.on("connect", () => {
-  console.log("connected to server");
+  console.log("Server Connected -");
 
   socket.on("add-online-user", (id) => {
     const { user } = store.getState();
@@ -38,6 +52,10 @@ socket.on("connect", () => {
 
   socket.on("update-messages", (data) => {
     store.dispatch(updateReadMessages(data.id, data.lastRead));
+  })
+
+  socket.on("disconnect", reason => {
+    console.log("User disconnect by", reason);
   })
 });
 
