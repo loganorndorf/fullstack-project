@@ -20,30 +20,42 @@ const socket = io(window.location.origin, {
   rejectUnauthorized: true
 });
 
-socket.on("connect_error", error => {
-  console.log(error.message);
-})
+
+const { user, conversations } = store.getState();
+const checkForConvo = (idToCheck) => {
+  for(const convo of conversations) {
+    if(convo.otherUser.id === idToCheck) {
+      return true;
+    }
+  }
+  
+  return false;
+}
 
 socket.on("connect", () => {
   console.log("Server Connected -");
 
   socket.on("add-online-user", (id) => {
-    const { user } = store.getState();
-
-    store.dispatch(addOnlineUser(id));
-    socket.emit("update-online-user", {
-      recipientId: id,
-      otherUserId: id,
-      id: user.id
-    })
+    if(checkForConvo(id)) {
+      store.dispatch(addOnlineUser(id));
+      socket.emit("update-online-user", {
+        recipientId: id,
+        otherUserId: id,
+        id: user.id
+      });
+    }
   });
 
   socket.on("update-online-user", (data) => {
-    store.dispatch(updateOnlineUserData(data.otherUserId, data.id));
+    if(checkForConvo(data.id)) {
+      store.dispatch(updateOnlineUserData(data.otherUserId, data.id));
+    }
   })
 
   socket.on("remove-offline-user", (id) => {
-    store.dispatch(removeOfflineUser(id));
+    if(checkForConvo(id)){
+      store.dispatch(removeOfflineUser(id));
+    }
   });
 
   socket.on("new-message", (data) => {
@@ -58,5 +70,9 @@ socket.on("connect", () => {
     console.log("User disconnect by", reason);
   })
 });
+
+socket.on("connect_error", error => {
+  console.log(error.message);
+})
 
 export default socket;
