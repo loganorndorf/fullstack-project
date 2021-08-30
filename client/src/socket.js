@@ -8,28 +8,54 @@ import {
   updateOnlineUserData,
 } from "./store/conversations";
 
-const socket = io(window.location.origin);
+const socket = io(window.location.origin, {
+  auth: async(cb) => {
+    const token = await localStorage.getItem("messenger-token");
+    cb({
+      token
+    });
+  },
+  autoConnect: false,
+  reconnection: false,
+  rejectUnauthorized: true
+});
+
+
+const checkForConvo = (idToCheck) => {
+  const { conversations } = store.getState();
+  
+  if(conversations[idToCheck]) return true
+  else return false
+}
 
 socket.on("connect", () => {
-  console.log("connected to server");
+  console.log("Server Connected -");
 
   socket.on("add-online-user", (id) => {
-    const { user } = store.getState();
+    if(checkForConvo(id)) {
+      const { user, conversations, activeConversation } = store.getState();
+      store.dispatch(addOnlineUser(id));
 
-    store.dispatch(addOnlineUser(id));
-    socket.emit("update-online-user", {
-      recipientId: id,
-      otherUserId: id,
-      id: user.id
-    })
+      if(activeConversation === conversations[id].otherUser.username) {
+        socket.emit("update-online-user", {
+          recipientId: id,
+          otherUserId: id,
+          id: user.id
+        });
+      }
+    }
   });
 
   socket.on("update-online-user", (data) => {
-    store.dispatch(updateOnlineUserData(data.otherUserId, data.id));
+    if(checkForConvo(data.id)) {
+      store.dispatch(updateOnlineUserData(data.otherUserId, data.id));
+    }
   })
 
   socket.on("remove-offline-user", (id) => {
-    store.dispatch(removeOfflineUser(id));
+    if(checkForConvo(id)){
+      store.dispatch(removeOfflineUser(id));
+    }
   });
 
   socket.on("new-message", (data) => {
@@ -39,6 +65,14 @@ socket.on("connect", () => {
   socket.on("update-messages", (data) => {
     store.dispatch(updateReadMessages(data.id, data.lastRead));
   })
+
+  socket.on("disconnect", reason => {
+    console.log("User disconnect by", reason);
+  })
 });
+
+socket.on("connect_error", error => {
+  console.error(error.message);
+})
 
 export default socket;

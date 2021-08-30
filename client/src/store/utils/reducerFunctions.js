@@ -1,7 +1,7 @@
-
+// changed state from [] to {}
 export const addMessageToStore = (state, payload) => {
   const { message, sender, recipient } = payload;
-  const newState = [...state];
+  const newState = {...state};
 
   // if sender isn't null, that means the message needs to be put in a brand new convo
   if (sender !== null) {
@@ -24,138 +24,163 @@ export const addMessageToStore = (state, payload) => {
       }
     }
 
-    return [newConvo, ...newState];
+    newState[newConvo.otherUser.id] = newConvo;
+    return newState;
   }
 
-  return newState.map((convo) => {
-    if (convo.id === message.conversationId) {
-      const convoCopy = {...convo};
-      convoCopy.messages.push(message);
-      convoCopy.latestMessageText = message.text;
+  const [key, convo] = Object
+    .entries(newState)
+    .find(([idx, convo]) => convo.id === message.conversationId);
 
-      if(!message.isRead) {
-        convoCopy.unreadMessagesCount++;
-      } else if(message.senderId !== convoCopy.otherUser.id) {
-        convoCopy.otherUser.lastRead = message.id;
-      }
+  if(key) {
+    const pk = parseInt(key);
+    const copy = {...convo};
+    const messages = [...copy.messages]
 
-      return convoCopy;
-    } else {
-      return convo;
+    messages.push(message);
+    copy.messages = messages;
+    copy.latestMessageText = message.text;
+
+    if(!message.isRead) {
+      copy.unreadMessagesCount++;
+    } else if(message.senderId !== copy.otherUser.id) {
+      copy.otherUser.lastRead = message.id;
     }
-  });
+
+    newState[pk] = copy;
+    return newState;
+  } else {
+    return state;
+  }
+  
 };
 
 export const addOnlineUserToStore = (state, id) => {
-  const newState = [...state];
-  return newState.map((convo) => {
-    if (convo.otherUser.id === id) {
-      const convoCopy = { ...convo };
-      convoCopy.otherUser.online = true; 
-      return convoCopy;
-    } else {
-      return convo;
-    }
-  });
+  const newState = {...state};
+  const convoCopy = {...newState[id]};
+  convoCopy.otherUser.online = true;
+  newState[id] = convoCopy;
+
+  return newState;
 };
 
 
 export const updateOnlineUserActiveChat = (state, payload) => {
   const {id, recipId} = payload;
 
-  const newState = [...state];
-  return newState.map((convo) => {
-    if(convo.otherUser.id === id) {
+  const newState = {...state};
+  for(const [key, convo] of Object.entries(newState)) {
+    const pk = parseInt(key);
+
+    if(pk === id) {
       const convoCopy = {...convo};
       convoCopy.otherUser.activeChat = recipId;
-      return convoCopy;
+      newState[pk] = convoCopy;
     } else {
+
       if(convo.otherUser.activeChat === recipId) {
         const convoCopy = {...convo};
         convoCopy.otherUser.activeChat = null;
-        return convoCopy;
+        newState[pk] = convoCopy;
       }
-      return convo;
     }
-  });
+  }
+
+  return newState;
 };
 
 export const removeOfflineUserFromStore = (state, id) => {
-  const newState = [...state];
-  return newState.map((convo) => {
-    if (convo.otherUser.id === id) {
-      const convoCopy = { ...convo };
-      convoCopy.otherUser.online = false;
-      convoCopy.otherUser.activeChat = null;
-      return convoCopy;
-    } else {
-      return convo;
-    }
-  });
+  const newState = {...state};
+  const convoCopy = {...newState[id]};
+  convoCopy.otherUser.online = false;
+  convoCopy.otherUser.activeChat = null;
+
+  newState[id] = convoCopy;
+
+  return newState;
 };
 
 export const addSearchedUsersToStore = (state, users) => {
   const currentUsers = {};
 
   // make table of current users so we can lookup faster
-  state.forEach((convo) => {
+  Object.values(state).forEach((convo) => {
     currentUsers[convo.otherUser.id] = true;
   });
 
-  const newState = [...state];
+  const newState = {...state};
   users.forEach((user) => {
     // only create a fake convo if we don't already have a convo with this user
     if (!currentUsers[user.id]) {
       let fakeConvo = { otherUser: user, messages: [] };
-      newState.push(fakeConvo);
+      newState[user.id] = fakeConvo;
     }
   });
 
   return newState;
 };
 
-export const addNewConvoToStore = (state, recipientId, message) => {
-  const newState = [...state];
-  return newState.map((convo) => {
-    if (convo.otherUser.id === recipientId) {
-      const convoCopy = {...convo};
-
-      convoCopy.id = message.conversationId;
-      convoCopy.messages.push(message);
-      convoCopy.latestMessageText = message.text;
-      convoCopy.unreadMessagesCount = convoCopy?.unreadMessagesCount ?? 0;
-      return convoCopy;
-    } else {
-      return convo;
+export const removeSearchedUsersFromStore = (state) => {
+  const newState = {...state};
+  const newStateCopy = {...newState}
+  for(const [idx, entry] of Object.entries(newStateCopy)) {
+    if(!entry.id) {
+      delete newState[idx];
     }
-  });
+  }
+
+  return newState;
+}
+
+export const addNewConvoToStore = (state, recipientId, message) => {
+  const newState = {...state};
+  const convo = {...newState[recipientId]};
+  convo.id = message.conversationId;
+
+  const messages = [...convo.messages];
+  messages.push(message);
+  convo.messages = messages;
+
+  convo.latestMessageText = message.text;
+  convo.unreadMessagesCount = convo?.unreadMessagesCount ?? 0;
+
+  newState[recipientId] = convo;
+
+  return newState;
 };
 
 export const updateStoredMessagesReadStatus = (state, payload) => {
-  const newState = [...state];
   const { conversationId, lastReadMsg } = payload;
+  const newState = {...state};
 
-  return newState.map((convo) => {
-    if(convo.id === conversationId){
-      const convoCopy = {...convo};
-      convoCopy.unreadMessagesCount = 0;
+  const [key, entry] = Object
+    .entries(newState)
+    .find(([idx, convo]) => convo.id === conversationId);
+  
+  if(key) {
+    const pk = parseInt(key);
+    const convoCopy = {...entry};
+    convoCopy.unreadMessagesCount = 0;
 
-      convoCopy.messages = convoCopy.messages.map((msg) => {
-        if(msg.id > lastReadMsg) {
-          const msgCopy = {...msg};
-          msgCopy.isRead = true;
-          if(msg.senderId !== convoCopy.otherUser.id) {
-            convoCopy.otherUser.lastRead = msg.id;
-          }
-          return msgCopy;
-        } else {
-          return msg;
+    const updatedMessages = convoCopy.messages.map((msg) => {
+      if(msg.id > lastReadMsg) {
+        const msgCopy = {...msg};
+        msgCopy.isRead = true;
+        if(msg.senderId !== convoCopy.otherUser.id) {
+          convoCopy.otherUser.lastRead = msg.id;
         }
-      })
+        return msgCopy;
+      } else {
+        return msg;
+      }
+    })
 
-      return convoCopy;
-    } else {
-      return convo;
-    }
-  })
+    convoCopy.messages = updatedMessages;
+    newState[pk] = convoCopy;
+
+    return newState;
+  } else {
+    return state;
+  }
+  
 }
