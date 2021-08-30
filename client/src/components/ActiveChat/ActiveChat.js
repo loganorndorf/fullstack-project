@@ -25,8 +25,8 @@ const selectConversation = state => {
     user: state.user,
     conversation: 
       state.conversations &&
-      state.conversations.find(
-        (conversation) => conversation.otherUser.username === state.activeConversation
+      Object.values(state.conversations).find(
+        (conversation) => conversation?.otherUser.username === state.activeConversation
       )
   }
 }

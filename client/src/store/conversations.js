@@ -6,6 +6,7 @@ import {
   addMessageToStore,
   updateStoredMessagesReadStatus,
   updateOnlineUserActiveChat,
+  removeSearchedUsersFromStore,
 } from "./utils/reducerFunctions";
 
 // ACTIONS
@@ -87,7 +88,7 @@ export const updateReadMessages = (conversationId, lastReadMsg) => {
 
 // REDUCER
 
-const reducer = (state = [], action) => {
+const reducer = (state = {}, action) => {
   switch (action.type) {
     case GET_CONVERSATIONS:
       return action.conversations;
@@ -105,7 +106,7 @@ const reducer = (state = [], action) => {
     case SET_SEARCHED_USERS:
       return addSearchedUsersToStore(state, action.users);
     case CLEAR_SEARCHED_USERS:
-      return state.filter((convo) => convo.id);
+      return removeSearchedUsersFromStore(state);
     case ADD_CONVERSATION:
       return addNewConvoToStore(
         state,

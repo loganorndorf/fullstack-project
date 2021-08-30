@@ -31,7 +31,7 @@ router.get("/", async (req, res, next) => {
               [Op.not]: userId,
             },
           },
-          attributes: ["id", "username", "photoUrl", "activeChat"],
+          attributes: ["id", "username", "photoUrl"],
           required: false,
         },
         {
@@ -42,11 +42,13 @@ router.get("/", async (req, res, next) => {
               [Op.not]: userId,
             },
           },
-          attributes: ["id", "username", "photoUrl", "activeChat"],
+          attributes: ["id", "username", "photoUrl"],
           required: false,
         },
       ],
     });
+
+    const convoReturnDict = {};
 
     for (let i = 0; i < conversations.length; i++) {
       const convo = conversations[i];
@@ -62,7 +64,7 @@ router.get("/", async (req, res, next) => {
       }
 
       // set property for online status of the other user
-      if (onlineUsers.includes(convoJSON.otherUser.id)) {
+      if (onlineUsers[convoJSON.otherUser.id]) {
         convoJSON.otherUser.online = true;
       } else {
         convoJSON.otherUser.online = false;
@@ -87,10 +89,10 @@ router.get("/", async (req, res, next) => {
         }
       }
 
-      conversations[i] = convoJSON;
+      convoReturnDict[convoJSON.otherUser.id] = convoJSON;
     }
 
-    res.json(conversations);
+    res.json(convoReturnDict);
   } catch (error) {
     next(error);
   }

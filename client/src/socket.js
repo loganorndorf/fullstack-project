@@ -21,15 +21,11 @@ const socket = io(window.location.origin, {
 });
 
 
-const { user, conversations } = store.getState();
 const checkForConvo = (idToCheck) => {
-  for(const convo of conversations) {
-    if(convo.otherUser.id === idToCheck) {
-      return true;
-    }
-  }
+  const { conversations } = store.getState();
   
-  return false;
+  if(conversations[idToCheck]) return true
+  else return false
 }
 
 socket.on("connect", () => {
@@ -37,12 +33,16 @@ socket.on("connect", () => {
 
   socket.on("add-online-user", (id) => {
     if(checkForConvo(id)) {
+      const { user, conversations, activeConversation } = store.getState();
       store.dispatch(addOnlineUser(id));
-      socket.emit("update-online-user", {
-        recipientId: id,
-        otherUserId: id,
-        id: user.id
-      });
+
+      if(activeConversation === conversations[id].otherUser.username) {
+        socket.emit("update-online-user", {
+          recipientId: id,
+          otherUserId: id,
+          id: user.id
+        });
+      }
     }
   });
 
@@ -72,7 +72,7 @@ socket.on("connect", () => {
 });
 
 socket.on("connect_error", error => {
-  console.log(error.message);
+  console.error(error.message);
 })
 
 export default socket;

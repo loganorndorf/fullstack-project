@@ -39,7 +39,7 @@ io.use((socket, next) => {
     jwt.verify(token, process.env.SESSION_SECRET, (err, decodedToken) => {
       if(err) return next(new Error(err.message));
 
-      if(onlineUsers.includes(decodedToken.id)) {
+      if(onlineUsers[decodedToken.id]) {
         return next(new Error("User is already online"));
       }
 
@@ -54,16 +54,13 @@ io.use((socket, next) => {
 
 
 .on("connection", (socket) => {
-  const id = socket.decoded.id;
-  socket.join(id);
-  
   socket.on("go-online", (id) => {
-    if (!onlineUsers.includes(id)) {
+    if (!onlineUsers[id]) {
       // send the user who just went online to everyone else who is already online
-      for(user of onlineUsers) {
+      for(const user of Object.values(onlineUsers)) {
         socket.to(user).emit("add-online-user", id);
       }
-      onlineUsers.push(id);
+      onlineUsers[id] = socket.id;
     }
   });
 
@@ -74,18 +71,21 @@ io.use((socket, next) => {
     }
 
     if(data.recipientId) {
-      socket.to(data.recipientId).emit("update-online-user", payload); 
+      socket.to(onlineUsers[data.recipientId]).emit("update-online-user", payload); 
     } else {
-      for(user of onlineUsers) {
-        socket.to(user).emit("update-online-user", payload);
+      for(const [keyId, user] of Object.entries(onlineUsers)) {
+        if(keyId !== data.id) {
+          socket.to(user).emit("update-online-user", payload);
+        }
       }
     }
     
   });
 
   socket.on("new-message", (data) => {
-    if(onlineUsers.includes(data.recipientId)){
-      socket.to(data.recipientId).emit("new-message", {
+
+    if(onlineUsers[data.recipientId]){
+      socket.to(onlineUsers[data.recipientId]).emit("new-message", {
         recipientId: data.recipientId,
         message: data.message,
         sender: data.sender,
@@ -94,26 +94,20 @@ io.use((socket, next) => {
   });
 
   socket.on("update-messages", (data) => {
-    socket.to(data.recipientId).emit("update-messages", {
+    socket.to(onlineUsers[data.recipientId]).emit("update-messages", {
       id: data.id,
       lastRead: data.lastRead
     });
   })
 
   socket.on("logout", (id) => {
-    if (onlineUsers.includes(id)) {
-      userIndex = onlineUsers.indexOf(id);
-      onlineUsers.splice(userIndex, 1);
-      for(user of onlineUsers) {
+    if (onlineUsers[id]) {
+      delete onlineUsers[id];
+      for(const user of Object.values(onlineUsers)) {
         socket.to(user).emit("remove-offline-user", id);
       }
-      socket.disconnect(false);
     }
   });
-
-  socket.on("disconnect", (reason) => {
-    console.log(`User disconnected from a ${reason}`);
-  })
 });
 
 sessionStore
