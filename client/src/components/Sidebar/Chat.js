@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import { Box } from "@material-ui/core";
 import { BadgeAvatar, ChatContent, Notification } from "../Sidebar";
 import { withStyles } from "@material-ui/core/styles";
@@ -19,31 +19,29 @@ const styles = {
   },
 };
 
-class Chat extends Component {
-  handleClick = async () => {
-    const { setActiveChat, user, conversation } = this.props;
-    await setActiveChat({user, conversation});
-  };
+const Chat = (props) => {
+  const { classes, setActiveChat, user, conversation } = props;
+  const { otherUser } = conversation;
 
-  render() {
-    const { classes, conversation } = this.props;
-    const otherUser = conversation.otherUser;
-    return (
-      <Box
-        onClick={this.handleClick}
-        className={classes.root}
-      >
-        <BadgeAvatar
-          photoUrl={otherUser.photoUrl}
-          username={otherUser.username}
-          online={otherUser.online}
-          sidebar={true}
-        />
-        <ChatContent conversation={conversation} />
-        <Notification conversation={conversation} />
-      </Box>
-    );
+  const handleClick = async () => {
+    await setActiveChat({user, conversation});
   }
+
+  return (
+    <Box
+      onClick={handleClick}
+      className={classes.root}
+    >
+      <BadgeAvatar
+        photoUrl={otherUser.photoUrl}
+        username={otherUser.username}
+        online={otherUser.online}
+        sidebar={true}
+      />
+      <ChatContent conversation={conversation} />
+      <Notification conversation={conversation} />
+    </Box>
+  );
 }
 
 const mapDispatchToProps = (dispatch) => {
