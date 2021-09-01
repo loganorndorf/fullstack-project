@@ -9,7 +9,7 @@ chai.use(chaiHttp);
 const agent = chai.request.agent(app);
 
 describe("Message Display Order", () => {
-    it("messages in a convo should display oldest to newest", done => {
+    it("should display oldest to newest messages in a conversation", done => {
         agent
             .post(`/auth/login`)
             .send({username: "thomas", password: '123456'})
