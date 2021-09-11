@@ -1,4 +1,4 @@
-import React from "react";
+import { useState } from "react";
 import { FormControl, FilledInput } from "@material-ui/core";
 import { withStyles } from "@material-ui/core/styles";
 import { connect } from "react-redux";
@@ -18,15 +18,14 @@ const styles = {
 };
 
 const Input = (props) => {
-  const { classes } = props;
-  const [text, setText] = React.useState("");
+  const { classes, otherUser, conversationId, user } = props;
+  const [text, setText] = useState("");
 
   const handleChange = event => {
     setText(event.target.value);
   }
 
   const handleSubmit = async (event) => {
-    const { otherUser, conversationId, user} = props;
     event.preventDefault();
 
     const reqBody = {
